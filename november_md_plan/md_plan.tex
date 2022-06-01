@@ -1,0 +1,127 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{fullpage}
+\usepackage{fancyhdr}
+
+\pagestyle{fancy}
+\lhead{Sho Uemura}
+\chead{November SPS MD plan}
+\rhead{10/20/11}
+%\lfoot{}
+%\cfoot{\thepage}
+%\rfoot{}
+\setlength{\headheight}{24 pt}
+\setlength{\headsep}{25 pt}
+\setlength{\parindent}{18pt}
+\begin{document}
+
+\section{Excitation types}
+
+%\begin{table}[htdp]
+%\caption{System parameters}
+%\begin{center}
+%\begin{tabular}{|c|c|c|}
+%\hline
+%$f_\beta$ & fractional betatron tune & 0.18 \\
+%$f_s$ & synchrotron tune & 0.01 \\
+%\hline
+%\end{tabular}
+%\end{center}
+%\label{default}
+%\end{table}%
+
+\begin{table}[htdp]
+\caption{Excitation parameters}
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+$f_w$ & waveform frequency & 200-400 MHz \\
+$f_k$ & excitation tune & 0.15-0.2 \\
+$z$ & sample number & $[0, 1, \ldots, 15]$ or $[0, 1, \ldots, 31]$ \\
+$\Delta t$ & DAC clock period & 312 ps (1/3.2 GHz) \\
+$t_k$ & turn number & $[0, 1, \ldots]$ \\
+\hline
+\end{tabular}
+\end{center}
+\label{default}
+\end{table}%
+
+\subsection{Modulation types}
+
+Amplitude modulation:
+$$y(z,t_k) = A \sin(2\pi f_z z \Delta t)\sin(\phi(t_k))$$
+
+Special case of constant excitation (all samples get the same excitation):
+$$y(z,t_k) = A \sin(\phi(t_k))$$
+
+Phase modulation:
+$$y(z,t_k) = A \sin(2\pi f_z z \Delta t+\phi(t_k)))$$
+
+The excitation phase $\phi(t_k+1) = 2\pi f_k+\phi(t_k)$; for constant excitation tune $\phi(t_k) = 2\pi f_k t_k$.
+
+Note that the amplitude-modulated waveform is the sum of two phase-modulated waveforms with positive and negative $t_k$.
+%Note that the two patterns are related as follows:
+%
+%$$\cos(2\pi f_z z \Delta t)\sin(\phi(t_k))=\frac{1}{2}(\sin(2\pi f_z z \Delta t+\phi(t_k)))-\sin(2\pi f_z z \Delta t-\phi(t_k))))$$
+
+\subsection{Chirp excitation}
+
+Ramp $f_k$ uniformly between the specified values. Either use a specified number of turns as the ramp length, or the entire length of the excitation. The option to repeat the chirp (either by explicitly writing multiple ramps into the excitation sequence, or by having the DAC repeat the whole sequence) would be useful.
+
+\subsection{Band-limited excitation}
+Simplest way to do this is with amplitude modulation, as follows:
+$$y(z,t_k) = A \sin(2\pi f_z z \Delta t)f(t_k)$$
+where $f(t_k)$ is a noise signal filtered with a passband between a low and a high value of $f_k$.
+
+Is there a more sophisticated way to do this?
+
+\subsection{Tune switching}
+Some number of turns at an initial value of $f_k$, then some number of turns at a different $f_k$.
+
+\section{Analysis tools}
+How long does it take to go from TEK files to spectrogram? Note that to save time, spectrogram could be made with the signal before equalization.
+
+\subsection{Spectrograms}
+Spectrogram is run on a single sample of the delta signal. (Could modify to use all samples.)
+
+May want to make a periodogram on a specified time range --- easier to determine the band tune values, and the relative strengths of bands.
+\subsection{Time-domain plots}
+RMS of delta as a function of turn number --- must be run after filtering.
+
+How long does the movie take to generate? A GUI to view delta at a given turn number would be ideal, but plotting the filtered delta signal manually is adequate for online monitoring.
+
+\section{Measurement setup}
+Scope trigger signal must start with or before the excitation; record the offset (if any) between the two.
+
+To measure excitation, connect kicker output to channel 1. To measure beam response, connect pickup sum to channel 1, delta to channel 2. These will require different delays; may set this delay in the scope trigger signal or in the scope's internal delay.
+
+Always record excitation parameters, excitation and response.
+
+\section{Script}
+
+%\subsection{Setup}
+\begin{itemize}
+	\item Get rough values of betatron tune $f_\beta$ (roughly 0.18) and synchrotron tune $f_s$ (roughly 0.01) from CERN guys.
+
+	\item Set up scope to look at beam; set scope/trigger delay, verify hybrid delays are matched.
+
+	\item Use 200 MHz for waveform frequency $f_w$ (2 cycles across a 32-sample excitation), and amplitude modulation at the nominal tune. Trim delay to put the bunch near the center of the excitation.
+
+	\item Use 200 MHz, phase modulation; chirp from 0.15 to 0.25 over the full length of the excitation. Make spectrogram. If multiple tune bands visible, record their tunes (if there are tune shifts, ask about that); equalize and filter signal to identify the bands.
+
+	\item Repeat with band-limited excitation over the same range. If this seems more effective than the chirp, use band-limited excitations in place of chirps from here on.
+
+	\item See how low we can reduce amplitude and still see beam response.
+
+	\item Increase $f_w$ in steps; see how high it can go and still produce a measurable beam response. Higher modes may be easier to excite with higher waveform frequency (until kicker response falls off).
+
+	\item Repeat with amplitude modulation. Move the delay around; may be able to get the relative strengths of the different modes to change (a node of the excitation will excite odd modes; an antinode will excite even modes).
+
+	\item Use constant-tune excitations or chirps with limited ranges to hit individual tune bands. Try to hit all bands (positive and negative). See what the highest mode we can excite is --- play with waveform frequency, amplitude vs. phase modulation, time delay.
+
+	\item Review spectrograms and look for mode shifts. Try tune-switching excitations. (not really sure what to do here)
+
+	\item Try various things with a reduced beam intensity.
+\end{itemize}
+
+\end{document}
